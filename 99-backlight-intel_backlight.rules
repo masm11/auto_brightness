@@ -1,0 +1,2 @@
+KERNEL=="intel_backlight", RUN+="/bin/chmod 664 /sys/class/backlight/intel_backlight/brightness"
+KERNEL=="intel_backlight", RUN+="/bin/chgrp wheel /sys/class/backlight/intel_backlight/brightness"
