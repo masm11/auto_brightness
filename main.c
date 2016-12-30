@@ -29,7 +29,7 @@ int main(void)
     
     while (1) {
 	backlight_set_ambient(camera_get_ambient());
-	sleep(1);
+	usleep(100);
     }
     
     return 0;

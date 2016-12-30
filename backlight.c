@@ -28,6 +28,7 @@
 static int dirfd = -1;
 static int max_brightness = 1;
 static volatile int goal = 1;
+static int cur_brightness = 1;
 
 static void *backlight_loop(void *parm)
 {
@@ -35,6 +36,7 @@ static void *backlight_loop(void *parm)
 	char buf[128];
 	int fd;
 	
+#if 0
 	if ((fd = openat(dirfd, "brightness", O_RDONLY)) == -1) {
 	    perror("brightness");
 	    exit(1);
@@ -53,6 +55,8 @@ static void *backlight_loop(void *parm)
 	
 	buf[s] = '\0';
 	int now = atoi(buf);
+#endif
+	int now = cur_brightness;
 	
 	if (now != goal) {
 	    if (now < goal) {
@@ -75,6 +79,8 @@ static void *backlight_loop(void *parm)
 		exit(1);
 	    }
 	    close(fd);
+	    
+	    cur_brightness = now;
 	}
 	
 	usleep(ADJUST_MSEC * 1000);
@@ -91,12 +97,13 @@ int backlight_init(void)
     }
     
     int fd;
+    char buf[128];
+    int s;
+    
     if ((fd = openat(dirfd, "max_brightness", O_RDONLY)) == -1) {
 	perror("max_brightness");
 	exit(1);
     }
-    char buf[128];
-    int s;
     if ((s = read(fd, buf, sizeof buf)) == -1) {
 	perror("read");
 	exit(1);
@@ -106,6 +113,21 @@ int backlight_init(void)
 	exit(1);
     }
     max_brightness = atoi(buf);
+    close(fd);
+    
+    if ((fd = openat(dirfd, "brightness", O_RDONLY)) == -1) {
+	perror("brightness");
+	exit(1);
+    }
+    if ((s = read(fd, buf, sizeof buf)) == -1) {
+	perror("read");
+	exit(1);
+    }
+    if (s >= sizeof buf) {
+	fprintf(stderr, "out of buffer.\n");
+	exit(1);
+    }
+    cur_brightness = atoi(buf);
     close(fd);
     
     pthread_attr_t attr;
